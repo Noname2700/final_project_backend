@@ -1,6 +1,7 @@
-const jwt = require("jsonwebtoken");
-const { JWT_SECRET } = require("../utils/config");
-const UnAuthorizedError = require("../../../final_project_backend2/src/middlewares/errors/unAuthorizeError");
+import pkg from "jsonwebtoken";
+const { verify } = pkg;
+import config from "../utils/config.js";
+import UnAuthorizedError from "../middleware/errors/unAuthorizeError.js";
 
 const auth = (req, res, next) => {
   try {
@@ -11,7 +12,7 @@ const auth = (req, res, next) => {
     }
 
     const token = authorization.replace("Bearer ", "");
-    const payload = jwt.verify(token, JWT_SECRET);
+    const payload = verify(token, config.JWT_SECRET);
     req.user = payload;
     return next();
   } catch (err) {
@@ -19,4 +20,4 @@ const auth = (req, res, next) => {
   }
 };
 
-module.exports = auth;
+export default auth;

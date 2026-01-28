@@ -6,4 +6,4 @@ class InternalServerError extends Error {
   }
 }
 
-module.exports = InternalServerError;
+export default InternalServerError;

@@ -1,17 +1,16 @@
-const express = require("express");
-const fs = require("fs");
-const https = require("https");
-const mongoose = require("mongoose");
-const { config } = require("dotenv");
-const morgan = require("morgan");
-const logger = require("./src/middlewares/logger");
-const winston = require("winston");
-const cors = require("cors");
-const errorHandler = require("./src/middlewares/error-handler");
-const articleItemsRouter = require("./src/routes/articleItems");
-const usersRouter = require("./src/routes/users");
-const helmet = require("helmet");
-const apiLimiter = require("./src/middlewares/rateLimiter");
+import express, { json } from "express";
+import { readFileSync } from "fs";
+import { createServer } from "https";
+import { connect } from "mongoose";
+import { config } from "dotenv";
+import morgan from "morgan";
+import logger from "./src/middleware/logger.js";
+import cors from "cors";
+import errorHandler from "./src/middleware/error-handler.js";
+import articleItemsRouter from "./src/routes/articleItems.js";
+import usersRouter from "./src/routes/users.js";
+import helmet from "helmet";
+import apiLimiter from "./src/middleware/rateLimiter.js";
 
 config();
 
@@ -22,18 +21,17 @@ app.use(helmet());
 app.use(apiLimiter);
 
 const sslOptions = {
-  key: fs.readFileSync("server.key"),
-  cert: fs.readFileSync("server.cert"),
+  key: readFileSync("server.key"),
+  cert: readFileSync("server.cert"),
 };
 
 const { PORT = 3001 } = process.env;
 
-https.createServer(sslOptions, app).listen(PORT, () => {
+createServer(sslOptions, app).listen(PORT, () => {
   console.log(`HTTPS Server running on https://localhost:${PORT}`);
 });
 
-mongoose
-  .connect("mongodb://localhost:27017/news-db")
+connect("mongodb://localhost:27017/news-db")
   .then(() => {
     console.log("Connected to MongoDB");
   })
@@ -43,7 +41,7 @@ mongoose
 
 const morganStream = {
   write: (message) => {
-    winston.info(message.trim());
+    logger.info(message.trim());
   },
 };
 
@@ -53,7 +51,7 @@ const corsOptions = {
   credentials: true,
 };
 app.use(cors(corsOptions));
-app.use(express.json());
+app.use(json());
 
 app.get("/", (req, res) => {
   res.json({ message: "Welcome to the News API" });

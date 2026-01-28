@@ -1,14 +1,16 @@
-const mongoose = require("mongoose");
-const validator = require("validator");
-const argon2 = require("argon2");
+import { Schema, model } from "mongoose";
+import validator from "validator";
+const { isEmail } = validator;
+import argon2 from "argon2";
+const { compare } = argon2;
 
-const userSchema = new mongoose.Schema({
+const userSchema = new Schema({
   email: {
     type: String,
     required: [true, "Email is required"],
     unique: true,
     validate: {
-      validator: (value) => validator.isEmail(value),
+      validator: (value) => isEmail(value),
       message: "Invalid email format",
     },
   },
@@ -33,7 +35,7 @@ userSchema.statics.findUserByCredentials = function (email, password) {
       if (!user) {
         return Promise.reject(new Error("Invalid email or password"));
       }
-      return argon2.compare(user.password, password).then((matched) => {
+      return compare(user.password, password).then((matched) => {
         if (!matched) {
           return Promise.reject(new Error("Invalid email or password"));
         }
@@ -42,4 +44,4 @@ userSchema.statics.findUserByCredentials = function (email, password) {
     });
 };
 
-module.exports = mongoose.model("User", userSchema);
+export default model("User", userSchema);

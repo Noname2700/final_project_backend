@@ -1,7 +1,8 @@
-const mongoose = require("mongoose");
-const validator = require("validator");
+import { Schema, model } from "mongoose";
+import validator from "validator";
+const { isURL } = validator;
 
-const articleSchema = new mongoose.Schema({
+const articleSchema = new Schema({
   keyword: {
     type: String,
     required: [true, "Keyword is required"],
@@ -10,7 +11,8 @@ const articleSchema = new mongoose.Schema({
     type: String,
     required: [true, "Image URL is required"],
     validate: {
-      validator: (value) => validator.isURL(value, { protocols: ["http", "https"], require_protocol: true }),
+      validator: (value) =>
+        isURL(value, { protocols: ["http", "https"], require_protocol: true }),
       message: "Invalid URL format",
     },
   },
@@ -18,7 +20,8 @@ const articleSchema = new mongoose.Schema({
     type: String,
     required: [true, "Link is required"],
     validate: {
-      validator: (value) => validator.isURL(value, { protocols: ["http", "https"], require_protocol: true }),
+      validator: (value) =>
+        isURL(value, { protocols: ["http", "https"], require_protocol: true }),
       message: "Invalid URL format",
     },
   },
@@ -39,10 +42,10 @@ const articleSchema = new mongoose.Schema({
     required: [true, "Source is required"],
   },
   owner: {
-    type: mongoose.Schema.Types.ObjectId,
+    type: Schema.Types.ObjectId,
     ref: "User",
     required: [true, "Owner is required"],
   },
 });
 
-module.exports = mongoose.model("Article", articleSchema);
+export default model("Article", articleSchema);

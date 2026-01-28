@@ -1,5 +1,6 @@
-const { Joi, celebrate } = require("celebrate");
-const validator = require("validator");
+import { Joi, celebrate } from "celebrate";
+import validator from "validator";
+const { isURL } = validator;
 
 const NAME_MIN_LENGTH = 2;
 const NAME_MAX_LENGTH = 30;
@@ -7,7 +8,7 @@ const PASSWORD_MIN_LENGTH = 6;
 const ITEM_ID_LENGTH = 24;
 
 const validateUrl = (value, helpers) => {
-  if (validator.isURL(value)) {
+  if (isURL(value)) {
     return value;
   }
   return helpers.error("Invalid URL format");
@@ -144,7 +145,7 @@ const validateArticleIdParam = celebrate({
 
 const validateArticleId = createIdvalidator("articleId");
 
-module.exports = {
+export default {
   validateUserCreation,
   validateUserInfo,
   authenticateUser,

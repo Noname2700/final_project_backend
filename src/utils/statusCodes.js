@@ -3,7 +3,6 @@ const OK_STATUS = 200;
 const CREATED_STATUS = 201;
 const NO_CONTENT_STATUS = 204;
 
-
 // Client Errors
 const BAD_REQUEST_STATUS = 400;
 const UNAUTHORIZED_STATUS = 401;
@@ -15,7 +14,7 @@ const TOO_MANY_REQUESTS_STATUS = 429;
 // Server Errors
 const INTERNAL_SERVER_ERROR_STATUS = 500;
 
-module.exports = {
+export default {
   OK_STATUS,
   BAD_REQUEST_STATUS,
   NOT_FOUND_STATUS,

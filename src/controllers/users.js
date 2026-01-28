@@ -1,17 +1,23 @@
-const argon2 = require("argon2");
-const jwt = require("jsonwebtoken");
-const { CREATED_STATUS, OK_STATUS } = require("../utils/statusCodes");
-const InternalServerError = require("../middleware/errors/internalServerError");
-const ConflictError = require("../middleware/errors/conflictError");
-const BadRequestError = require("../middleware/errors/badRequestError");
-const UnauthorizedError = require("../middleware/errors/unAuthorizeError");
-const { JWT_SECRET } = require("../utils/config");
-const User = require("../models/user");
+import { hash as _hash, argon2id, verify } from "argon2";
+import jwt from "jsonwebtoken";
+const { sign } = jwt;
+import statusCodes from "../utils/statusCodes.js";
+
+import InternalServerError from "../middleware/errors/internalServerError.js";
+import ConflictError from "../middleware/errors/conflictError.js";
+import BadRequestError from "../middleware/errors/badRequestError.js";
+import UnauthorizedError from "../middleware/errors/unAuthorizeError.js";
+import config from "../utils/config.js";
+import User from "../models/user.js";
+
+const { JWT_SECRET } = config;
+
+const { CREATED_STATUS, OK_STATUS } = statusCodes;
 
 const createUser = (req, res, next) => {
   const { email, password, name } = req.body;
 
-  argon2.hash(password, { type: argon2.argon2id }).then((hash) =>
+  _hash(password, { type: argon2id }).then((hash) =>
     User.create({ email, password: hash, name })
       .then((user) => {
         const userResponse = user.toObject();
@@ -42,13 +48,12 @@ const logInUser = (req, res, next) => {
         return next(new UnauthorizedError("Invalid email or password"));
       }
 
-      return argon2
-        .verify(user.password, password)
+      return verify(user.password, password)
         .then((isValid) => {
           if (!isValid) {
             return next(new UnauthorizedError("Invalid email or password"));
           }
-          const token = jwt.sign({ _id: user._id }, JWT_SECRET, {
+          const token = sign({ _id: user._id }, JWT_SECRET, {
             expiresIn: "7d",
           });
           res.status(OK_STATUS).send({ token });
@@ -57,4 +62,4 @@ const logInUser = (req, res, next) => {
     });
 };
 
-module.exports = { createUser, logInUser };
+export default { createUser, logInUser };

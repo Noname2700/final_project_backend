@@ -1,14 +1,14 @@
-const rateLimit = require("express-rate-limit");
-const { TOO_MANY_REQUESTS_STATUS } = require("../utils/statusCodes");
+import rateLimit from "express-rate-limit";
+import statusCodes from "../utils/statusCodes.js";
 
 const apiLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
   max: 100, // Limit each IP to 100 requests per windowMs
   message: {
 
-    status: TOO_MANY_REQUESTS_STATUS,
+    status: statusCodes.TOO_MANY_REQUESTS_STATUS,
     error: "Too many requests, please try again later.",
   },
 });
 
-module.exports = apiLimiter;
+export default apiLimiter;

@@ -1,5 +1,12 @@
-const Article = require("../models/articleItem");
-const { OK_STATUS, NO_CONTENT_STATUS } = require("../utils/statusCodes");
+import Article from "../models/articleItem.js";
+import InternalServerError from "../middleware/errors/internalServerError.js";
+import NotFoundError from "../middleware/errors/notFoundError.js";
+import BadRequestError from "../middleware/errors/badRequestError.js";
+import statusCodes from "../utils/statusCodes.js";
+
+
+const { OK_STATUS, NO_CONTENT_STATUS } = statusCodes;
+
 
 const getCurrentUser = (req, res, next) => {
   const userId = req.user._id;
@@ -76,7 +83,7 @@ const deleteArticle = (req, res, next) => {
     });
 };
 
-module.exports = {
+export default {
   getArticle,
   saveArticle,
   deleteArticle,

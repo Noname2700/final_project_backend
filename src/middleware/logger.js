@@ -1,33 +1,33 @@
-const winston = require("winston");
-const expressWinston = require("express-winston");
+import { format as _format, transports as _transports } from "winston";
+import { logger, errorLogger as _errorLogger } from "express-winston";
 
-const messageFormat = winston.format.combine(
-  winston.format.timestamp(),
-  winston.format.printf(({ level, message, meta, timestamp }) => {
+const messageFormat = _format.combine(
+  _format.timestamp(),
+  _format.printf(({ level, message, meta, timestamp }) => {
     return `${timestamp} [${level}]: ${message} ${meta?.error?.stack || message}`;
   }),
 );
 
-const requestLogger = expressWinston.logger({
+const requestLogger = logger({
   transports: [
-    new winston.transports.Console({ format: messageFormat }),
-    new winston.transports.File({
+    new _transports.Console({ format: messageFormat }),
+    new _transports.File({
       filename: "logs/requests.log",
-      format: winston.format.json(),
+      format: _format.json(),
     }),
   ],
 });
 
-const errorLogger = expressWinston.errorLogger({
+const errorLogger = _errorLogger({
   transports: [
-    new winston.transports.File({
+    new _transports.File({
       filename: "logs/errors.log",
-      format: winston.format.json(),
+      format: _format.json(),
     }),
   ],
 });
 
-module.exports = {
+export default {
   requestLogger,
   errorLogger,
 };
