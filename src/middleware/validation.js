@@ -70,16 +70,6 @@ const validateUserInfo = celebrate({
         "string.min": `The "password" field must be at least ${PASSWORD_MIN_LENGTH} characters long`,
         "string.empty": 'The "password" field must be filled',
       }),
-
-    name: Joi.string()
-      .min(NAME_MIN_LENGTH)
-      .max(NAME_MAX_LENGTH)
-      .required()
-      .messages({
-        "string.min": `The "name" field must be at least ${NAME_MIN_LENGTH} characters long`,
-        "string.max": `The "name" field must be at most ${NAME_MAX_LENGTH} characters long`,
-        "string.empty": 'The "name" field must be filled',
-      }),
   }),
 });
 

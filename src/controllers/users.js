@@ -53,13 +53,35 @@ const logInUser = (req, res, next) => {
           if (!isValid) {
             return next(new UnauthorizedError("Invalid email or password"));
           }
+          const userResponse = user.toObject();
+          delete userResponse.password;
           const token = sign({ _id: user._id }, JWT_SECRET, {
             expiresIn: "7d",
           });
-          res.status(OK_STATUS).send({ token });
+          res.status(OK_STATUS).send({ token, ...userResponse });
+
         })
         .catch(() => next(new UnauthorizedError("Invalid email or password")));
     });
 };
 
-export default { createUser, logInUser };
+const getCurrentUser = (req, res, next) => {
+  const userId = req.user._id;
+  User.findById(userId)
+    .then((user) => {
+      if (!user) {
+        return next(new NotFoundError("User not found"));
+      }
+      res.status(OK_STATUS).send(user);
+    })
+    .catch(() =>
+      next(
+        new InternalServerError(
+          "An error occurred while retrieving user information",
+        ),
+      ),
+    );
+};
+
+
+export default { createUser, logInUser , getCurrentUser };

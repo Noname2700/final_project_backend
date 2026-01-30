@@ -11,6 +11,8 @@ import articleItemsRouter from "./src/routes/articleItems.js";
 import usersRouter from "./src/routes/users.js";
 import helmet from "helmet";
 import apiLimiter from "./src/middleware/rateLimiter.js";
+import usersController from "./src/controllers/users.js";
+import validation from "./src/middleware/validation.js";
 
 config();
 
@@ -20,15 +22,20 @@ app.use(helmet());
 
 app.use(apiLimiter);
 
-const sslOptions = {
-  key: readFileSync("server.key"),
-  cert: readFileSync("server.cert"),
-};
+// --- HTTPS server creation is commented out for local development to avoid certificate issues ---
+// const sslOptions = {
+//   key: readFileSync("server.key"),
+//   cert: readFileSync("server.cert"),
+// };
+// const { PORT = 3002 } = process.env;
+// createServer(sslOptions, app).listen(PORT, () => {
+//   console.log(`HTTPS Server running on https://localhost:${PORT}`);
+// });
 
-const { PORT = 3001 } = process.env;
-
-createServer(sslOptions, app).listen(PORT, () => {
-  console.log(`HTTPS Server running on https://localhost:${PORT}`);
+// Use HTTP for local development
+const { PORT = 3002 } = process.env;
+app.listen(PORT, () => {
+  console.log(`HTTP Server running on http://localhost:${PORT}`);
 });
 
 connect("mongodb://localhost:27017/news-db")
@@ -41,7 +48,7 @@ connect("mongodb://localhost:27017/news-db")
 
 const morganStream = {
   write: (message) => {
-    logger.info(message.trim());
+    console.log(message.trim());
   },
 };
 

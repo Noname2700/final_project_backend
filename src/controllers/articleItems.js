@@ -8,23 +8,6 @@ import statusCodes from "../utils/statusCodes.js";
 const { OK_STATUS, NO_CONTENT_STATUS } = statusCodes;
 
 
-const getCurrentUser = (req, res, next) => {
-  const userId = req.user._id;
-  User.findById(userId)
-    .then((user) => {
-      if (!user) {
-        return next(new NotFoundError("User not found"));
-      }
-      res.status(OK_STATUS).send(user);
-    })
-    .catch(() =>
-      next(
-        new InternalServerError(
-          "An error occurred while retrieving user information",
-        ),
-      ),
-    );
-};
 
 const getArticle = (req, res, next) => {
   const ownerId = req.user._id;
@@ -87,5 +70,5 @@ export default {
   getArticle,
   saveArticle,
   deleteArticle,
-  getCurrentUser,
+ 
 };
