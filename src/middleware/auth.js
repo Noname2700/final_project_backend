@@ -3,20 +3,30 @@ const { verify } = pkg;
 import config from "../utils/config.js";
 import UnAuthorizedError from "../middleware/errors/unAuthorizeError.js";
 
+const { JWT_SECRET } = config;
+
 const auth = (req, res, next) => {
   try {
-    const { authorization } = req.headers;
+    const { token } = req.cookies;
 
-    if (!authorization || !authorization.startsWith("Bearer ")) {
+    if (!token) {
       throw new UnAuthorizedError("Authorization required");
     }
 
-    const token = authorization.replace("Bearer ", "");
-    const payload = verify(token, config.JWT_SECRET);
+    let payload;
+    try {
+      payload = verify(token, JWT_SECRET);
+    } catch (err) {
+      if (err.name === "TokenExpiredError") {
+        throw new UnAuthorizedError("Token has expired");
+      }
+      throw new UnAuthorizedError("Invalid token");
+    }
+
     req.user = payload;
     return next();
   } catch (err) {
-    throw new UnAuthorizedError("Authorization required");
+    return next(err);
   }
 };
 

@@ -1,7 +1,6 @@
 import express, { json } from "express";
-import { readFileSync } from "fs";
-import { createServer } from "https";
-import { connect } from "mongoose";
+import cookieParser from "cookie-parser";
+import mongoose, { connect } from "mongoose";
 import { config } from "dotenv";
 import morgan from "morgan";
 import logger from "./src/middleware/logger.js";
@@ -11,8 +10,6 @@ import articleItemsRouter from "./src/routes/articleItems.js";
 import usersRouter from "./src/routes/users.js";
 import helmet from "helmet";
 import apiLimiter from "./src/middleware/rateLimiter.js";
-import usersController from "./src/controllers/users.js";
-import validation from "./src/middleware/validation.js";
 
 config();
 
@@ -22,23 +19,10 @@ app.use(helmet());
 
 app.use(apiLimiter);
 
-// --- HTTPS server creation is commented out for local development to avoid certificate issues ---
-// const sslOptions = {
-//   key: readFileSync("server.key"),
-//   cert: readFileSync("server.cert"),
-// };
-// const { PORT = 3002 } = process.env;
-// createServer(sslOptions, app).listen(PORT, () => {
-//   console.log(`HTTPS Server running on https://localhost:${PORT}`);
-// });
-
-// Use HTTP for local development
 const { PORT = 3002 } = process.env;
-app.listen(PORT, () => {
-  console.log(`HTTP Server running on http://localhost:${PORT}`);
-});
 
-connect("mongodb://localhost:27017/news-db")
+mongoose
+  .connect("mongodb://localhost:27017/news-db")
   .then(() => {
     console.log("Connected to MongoDB");
   })
@@ -58,6 +42,7 @@ const corsOptions = {
   credentials: true,
 };
 app.use(cors(corsOptions));
+app.use(cookieParser());
 app.use(json());
 
 app.get("/", (req, res) => {
@@ -72,12 +57,15 @@ app.get("/crash-test", () => {
 
 app.use(morgan("combined", { stream: morganStream }));
 app.use(logger.requestLogger);
-app.use(logger.errorLogger);
-app.use(errorHandler);
 
 app.use("/api/articles", articleItemsRouter);
 app.use("/api/users", usersRouter);
 
-/*app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
-});*/
+app.use(logger.errorLogger);
+app.use(errorHandler);
+
+
+app.listen(PORT, () => {
+  console.log(`HTTP Server running on http://localhost:${PORT}`);
+});
+

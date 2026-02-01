@@ -10,7 +10,12 @@ import UnauthorizedError from "../middleware/errors/unAuthorizeError.js";
 import config from "../utils/config.js";
 import User from "../models/user.js";
 
-const { JWT_SECRET } = config;
+const {
+  JWT_SECRET,
+  JWT_REFRESH_SECRET,
+  JWT_EXPIRES_IN,
+  JWT_REFRESH_EXPIRES_IN,
+} = config;
 
 const { CREATED_STATUS, OK_STATUS } = statusCodes;
 
@@ -55,11 +60,30 @@ const logInUser = (req, res, next) => {
           }
           const userResponse = user.toObject();
           delete userResponse.password;
-          const token = sign({ _id: user._id }, JWT_SECRET, {
-            expiresIn: "7d",
-          });
-          res.status(OK_STATUS).send({ token, ...userResponse });
 
+          const token = sign({ _id: user._id }, JWT_SECRET, {
+            expiresIn: JWT_EXPIRES_IN,
+          });
+
+          const refreshToken = sign({ _id: user._id }, JWT_REFRESH_SECRET, {
+            expiresIn: JWT_REFRESH_EXPIRES_IN,
+          });
+
+          res
+            .cookie("token", token, {
+              httpOnly: true,
+              secure: process.env.NODE_ENV === "production",
+              sameSite: "strict",
+              maxAge: 15 * 60 * 1000,
+            })
+            .cookie("refreshToken", refreshToken, {
+              httpOnly: true,
+              secure: process.env.NODE_ENV === "production",
+              sameSite: "strict",
+              maxAge: 7 * 24 * 60 * 60 * 1000,
+            })
+            .status(OK_STATUS)
+            .send(userResponse);
         })
         .catch(() => next(new UnauthorizedError("Invalid email or password")));
     });
@@ -83,5 +107,20 @@ const getCurrentUser = (req, res, next) => {
     );
 };
 
+const logOutUser = (req, res) => {
+  res
+    .clearCookie("token", {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
+    })
+    .clearCookie("refreshToken", {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
+    })
+    .status(OK_STATUS)
+    .send({ message: "Logged out successfully" });
+};
 
-export default { createUser, logInUser , getCurrentUser };
+export default { createUser, logInUser, getCurrentUser, logOutUser };
