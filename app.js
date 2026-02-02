@@ -37,9 +37,11 @@ const morganStream = {
 };
 
 const corsOptions = {
-  origin: "http://localhost:3000",
+  origin: process.env.CORS_ORIGIN || "https://newsarticles.chickenkiller.com",
   optionsSuccessStatus: 200,
   credentials: true,
+  methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
+  allowedHeaders: ["Content-Type", "Authorization"],
 };
 app.use(cors(corsOptions));
 app.use(cookieParser());
@@ -64,8 +66,6 @@ app.use("/api/users", usersRouter);
 app.use(logger.errorLogger);
 app.use(errorHandler);
 
-
 app.listen(PORT, () => {
   console.log(`HTTP Server running on http://localhost:${PORT}`);
 });
-
