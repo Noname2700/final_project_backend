@@ -35,14 +35,24 @@ const morganStream = {
     console.log(message.trim());
   },
 };
-
 const corsOptions = {
-  origin: process.env.CORS_ORIGIN || "https://newsarticles.chickenkiller.com",
-  optionsSuccessStatus: 200,
+  origin: function (origin, callback) {
+    const allowedOrigins = process.env.CORS_ORIGIN
+      ? process.env.CORS_ORIGIN.split(",")
+      : ["http://localhost:3000", "https://newsarticles.chickenkiller.com"];
+
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error("Not allowed by CORS"));
+    }
+  },
   credentials: true,
-  methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
+  methods: ["GET", "HEAD", "PUT", "PATCH", "POST", "DELETE", "OPTIONS"],
   allowedHeaders: ["Content-Type", "Authorization"],
+  optionsSuccessStatus: 200,
 };
+
 app.use(cors(corsOptions));
 app.use(cookieParser());
 app.use(json());
