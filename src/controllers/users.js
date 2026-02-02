@@ -34,7 +34,30 @@ const createUser = (req, res, next) => {
         .then((user) => {
           const userResponse = user.toObject();
           delete userResponse.password;
-          res.status(CREATED_STATUS).send(userResponse);
+
+          const token = sign({ _id: user._id }, JWT_SECRET, {
+            expiresIn: JWT_EXPIRES_IN,
+          });
+
+          const refreshToken = sign({ _id: user._id }, JWT_REFRESH_SECRET, {
+            expiresIn: JWT_REFRESH_EXPIRES_IN,
+          });
+
+          res
+            .cookie("token", token, {
+              httpOnly: true,
+              secure: process.env.NODE_ENV === "production",
+              sameSite: "strict",
+              maxAge: 15 * 60 * 1000,
+            })
+            .cookie("refreshToken", refreshToken, {
+              httpOnly: true,
+              secure: process.env.NODE_ENV === "production",
+              sameSite: "strict",
+              maxAge: 7 * 24 * 60 * 60 * 1000,
+            })
+            .status(CREATED_STATUS)
+            .send({ ...userResponse, token });
         })
         .catch((error) => {
           if (error.code === 11000) {
@@ -67,7 +90,11 @@ const logInUser = (req, res, next) => {
         return next(new UnauthorizedError("Invalid email or password"));
       }
 
-      return verify(user.password, password)
+      return verify(user.password, password, {
+        memoryCost: 2 ** 16,
+        timeCost: 3,
+        parallelism: 1,
+      })
         .then((isValid) => {
           if (!isValid) {
             return next(new UnauthorizedError("Invalid email or password"));
@@ -97,7 +124,7 @@ const logInUser = (req, res, next) => {
               maxAge: 7 * 24 * 60 * 60 * 1000,
             })
             .status(OK_STATUS)
-            .send(userResponse);
+            .send({ ...userResponse, token });
         })
         .catch(() => next(new UnauthorizedError("Invalid email or password")));
     })

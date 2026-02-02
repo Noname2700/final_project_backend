@@ -7,7 +7,15 @@ const { JWT_SECRET } = config;
 
 const auth = (req, res, next) => {
   try {
-    const { token } = req.cookies;
+    
+    let token = req.cookies?.token;
+
+    if (!token) {
+      const authHeader = req.headers.authorization;
+      if (authHeader && authHeader.startsWith("Bearer ")) {
+        token = authHeader.substring(7);
+      }
+    }
 
     if (!token) {
       throw new UnAuthorizedError("Authorization required");
