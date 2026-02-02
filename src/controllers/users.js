@@ -7,6 +7,7 @@ import InternalServerError from "../middleware/errors/internalServerError.js";
 import ConflictError from "../middleware/errors/conflictError.js";
 import BadRequestError from "../middleware/errors/badRequestError.js";
 import UnauthorizedError from "../middleware/errors/unAuthorizeError.js";
+import NotFoundError from "../middleware/errors/notFoundError.js";
 import config from "../utils/config.js";
 import User from "../models/user.js";
 
@@ -22,22 +23,35 @@ const { CREATED_STATUS, OK_STATUS } = statusCodes;
 const createUser = (req, res, next) => {
   const { email, password, name } = req.body;
 
-  _hash(password, { type: argon2id }).then((hash) =>
-    User.create({ email, password: hash, name })
-      .then((user) => {
-        const userResponse = user.toObject();
-        delete userResponse.password;
-        res.status(CREATED_STATUS).send(userResponse);
-      })
-      .catch((error) => {
-        if (error.code === 11000) {
-          return next(new ConflictError("Email already in use"));
-        }
-        return next(
-          new InternalServerError("An error occurred while creating the user"),
-        );
-      }),
-  );
+  _hash(password, {
+    type: argon2id,
+    memoryCost: 2 ** 16,
+    timeCost: 3,
+    parallelism: 1,
+  })
+    .then((hash) =>
+      User.create({ email, password: hash, name })
+        .then((user) => {
+          const userResponse = user.toObject();
+          delete userResponse.password;
+          res.status(CREATED_STATUS).send(userResponse);
+        })
+        .catch((error) => {
+          if (error.code === 11000) {
+            return next(new ConflictError("Email already in use"));
+          }
+          return next(
+            new InternalServerError(
+              "An error occurred while creating the user",
+            ),
+          );
+        }),
+    )
+    .catch(() => {
+      return next(
+        new InternalServerError("An error occurred while hashing the password"),
+      );
+    });
 };
 
 const logInUser = (req, res, next) => {
@@ -86,7 +100,10 @@ const logInUser = (req, res, next) => {
             .send(userResponse);
         })
         .catch(() => next(new UnauthorizedError("Invalid email or password")));
-    });
+    })
+    .catch(() =>
+      next(new InternalServerError("An error occurred during authentication")),
+    );
 };
 
 const getCurrentUser = (req, res, next) => {
