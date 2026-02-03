@@ -83,22 +83,26 @@ const logInUser = (req, res, next) => {
   if (!email || !password) {
     return next(new BadRequestError("Email and password are required"));
   }
+  
   User.findOne({ email })
     .select("+password")
     .then((user) => {
       if (!user) {
-        return next(new UnauthorizedError("Invalid email or password"));
+        next(new UnauthorizedError("Invalid email or password"));
+        return;
       }
 
-      return verify(user.password, password, {
+      verify(user.password, password, {
         memoryCost: 2 ** 16,
         timeCost: 3,
         parallelism: 1,
       })
         .then((isValid) => {
           if (!isValid) {
-            return next(new UnauthorizedError("Invalid email or password"));
+            next(new UnauthorizedError("Invalid email or password"));
+            return;
           }
+          
           const userResponse = user.toObject();
           delete userResponse.password;
 
@@ -126,11 +130,15 @@ const logInUser = (req, res, next) => {
             .status(OK_STATUS)
             .send({ ...userResponse, token });
         })
-        .catch(() => next(new UnauthorizedError("Invalid email or password")));
+        .catch((err) => {
+          console.error("Password verification error:", err);
+          next(new UnauthorizedError("Invalid email or password"));
+        });
     })
-    .catch(() =>
-      next(new InternalServerError("An error occurred during authentication")),
-    );
+    .catch((err) => {
+      console.error("Database error during authentication:", err);
+      next(new InternalServerError("An error occurred during authentication"));
+    });
 };
 
 const getCurrentUser = (req, res, next) => {
