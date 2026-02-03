@@ -29,7 +29,7 @@ const refreshToken = (req, res, next) => {
     .cookie("token", newToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
       maxAge: 15 * 60 * 1000,
     })
     .status(OK_STATUS)

@@ -47,13 +47,13 @@ const createUser = (req, res, next) => {
             .cookie("token", token, {
               httpOnly: true,
               secure: process.env.NODE_ENV === "production",
-              sameSite: "strict",
+              sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
               maxAge: 15 * 60 * 1000,
             })
             .cookie("refreshToken", refreshToken, {
               httpOnly: true,
               secure: process.env.NODE_ENV === "production",
-              sameSite: "strict",
+              sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
               maxAge: 7 * 24 * 60 * 60 * 1000,
             })
             .status(CREATED_STATUS)
@@ -114,13 +114,13 @@ const logInUser = (req, res, next) => {
             .cookie("token", token, {
               httpOnly: true,
               secure: process.env.NODE_ENV === "production",
-              sameSite: "strict",
+              sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
               maxAge: 15 * 60 * 1000,
             })
             .cookie("refreshToken", refreshToken, {
               httpOnly: true,
               secure: process.env.NODE_ENV === "production",
-              sameSite: "strict",
+              sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
               maxAge: 7 * 24 * 60 * 60 * 1000,
             })
             .status(OK_STATUS)
@@ -156,12 +156,12 @@ const logOutUser = (req, res) => {
     .clearCookie("token", {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
     })
     .clearCookie("refreshToken", {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
     })
     .status(OK_STATUS)
     .send({ message: "Logged out successfully" });
