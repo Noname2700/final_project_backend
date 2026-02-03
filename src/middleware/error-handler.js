@@ -5,7 +5,6 @@ const errorHandler = (err, req, res, next) => {
   console.error("Stack:", err.stack);
   console.error("Full error:", err);
 
-  // Handle Celebrate validation errors
   if (isCelebrateError(err)) {
     const errorBody = err.details.get("body") || err.details.get("params");
     const errorMessage = errorBody

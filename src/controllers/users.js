@@ -83,7 +83,7 @@ const logInUser = (req, res, next) => {
   if (!email || !password) {
     return next(new BadRequestError("Email and password are required"));
   }
-  
+
   User.findOne({ email })
     .select("+password")
     .then((user) => {
@@ -102,7 +102,7 @@ const logInUser = (req, res, next) => {
             next(new UnauthorizedError("Invalid email or password"));
             return;
           }
-          
+
           const userResponse = user.toObject();
           delete userResponse.password;
 
