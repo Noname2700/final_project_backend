@@ -19,10 +19,11 @@ app.use(helmet());
 
 app.use(apiLimiter);
 
-const { PORT = 3002 } = process.env;
+const { PORT = 3002, MONGODB_URI = "mongodb://localhost:27017/news-db" } =
+  process.env;
 
 mongoose
-  .connect("mongodb://localhost:27017/news-db")
+  .connect(MONGODB_URI)
   .then(() => {
     console.log("Connected to MongoDB");
   })
