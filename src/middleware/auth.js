@@ -7,7 +7,6 @@ const { JWT_SECRET } = config;
 
 const auth = (req, res, next) => {
   try {
-    
     let token = req.cookies?.token;
 
     if (!token) {
@@ -18,6 +17,7 @@ const auth = (req, res, next) => {
     }
 
     if (!token) {
+      console.error("No token found in cookies or Authorization header");
       throw new UnAuthorizedError("Authorization required");
     }
 
@@ -25,6 +25,7 @@ const auth = (req, res, next) => {
     try {
       payload = verify(token, JWT_SECRET);
     } catch (err) {
+      console.error("Token verification error:", err.message);
       if (err.name === "TokenExpiredError") {
         throw new UnAuthorizedError("Token has expired");
       }

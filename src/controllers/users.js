@@ -23,7 +23,7 @@ const { CREATED_STATUS, OK_STATUS } = statusCodes;
 const createUser = (req, res, next) => {
   const { email, password, name } = req.body;
 
-  _hash(password, {
+  return _hash(password, {
     type: argon2id,
     memoryCost: 2 ** 16,
     timeCost: 3,
@@ -43,7 +43,7 @@ const createUser = (req, res, next) => {
             expiresIn: JWT_REFRESH_EXPIRES_IN,
           });
 
-          res
+          return res
             .cookie("token", token, {
               httpOnly: true,
               secure: process.env.NODE_ENV === "production",
@@ -60,6 +60,7 @@ const createUser = (req, res, next) => {
             .send({ ...userResponse, token });
         })
         .catch((error) => {
+          console.error("User creation error:", error);
           if (error.code === 11000) {
             return next(new ConflictError("Email already in use"));
           }
@@ -70,7 +71,8 @@ const createUser = (req, res, next) => {
           );
         }),
     )
-    .catch(() => {
+    .catch((error) => {
+      console.error("Password hashing error:", error);
       return next(
         new InternalServerError("An error occurred while hashing the password"),
       );
@@ -84,23 +86,17 @@ const logInUser = (req, res, next) => {
     return next(new BadRequestError("Email and password are required"));
   }
 
-  User.findOne({ email })
+  return User.findOne({ email })
     .select("+password")
     .then((user) => {
       if (!user) {
-        next(new UnauthorizedError("Invalid email or password"));
-        return;
+        return next(new UnauthorizedError("Invalid email or password"));
       }
 
-      verify(user.password, password, {
-        memoryCost: 2 ** 16,
-        timeCost: 3,
-        parallelism: 1,
-      })
+      return verify(user.password, password)
         .then((isValid) => {
           if (!isValid) {
-            next(new UnauthorizedError("Invalid email or password"));
-            return;
+            return next(new UnauthorizedError("Invalid email or password"));
           }
 
           const userResponse = user.toObject();
@@ -114,7 +110,7 @@ const logInUser = (req, res, next) => {
             expiresIn: JWT_REFRESH_EXPIRES_IN,
           });
 
-          res
+          return res
             .cookie("token", token, {
               httpOnly: true,
               secure: process.env.NODE_ENV === "production",
@@ -132,31 +128,42 @@ const logInUser = (req, res, next) => {
         })
         .catch((err) => {
           console.error("Password verification error:", err);
-          next(new UnauthorizedError("Invalid email or password"));
+          return next(new UnauthorizedError("Invalid email or password"));
         });
     })
     .catch((err) => {
       console.error("Database error during authentication:", err);
-      next(new InternalServerError("An error occurred during authentication"));
+      return next(
+        new InternalServerError("An error occurred during authentication"),
+      );
     });
 };
 
 const getCurrentUser = (req, res, next) => {
+  if (!req.user || !req.user._id) {
+    return next(new UnauthorizedError("User not authenticated"));
+  }
+
   const userId = req.user._id;
   User.findById(userId)
     .then((user) => {
       if (!user) {
         return next(new NotFoundError("User not found"));
       }
-      res.status(OK_STATUS).send(user);
+
+      const userResponse = user.toObject();
+      delete userResponse.password;
+
+      res.status(OK_STATUS).send(userResponse);
     })
-    .catch(() =>
-      next(
+    .catch((err) => {
+      console.error("Error retrieving user:", err);
+      return next(
         new InternalServerError(
           "An error occurred while retrieving user information",
         ),
-      ),
-    );
+      );
+    });
 };
 
 const logOutUser = (req, res) => {
