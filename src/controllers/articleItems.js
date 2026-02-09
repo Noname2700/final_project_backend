@@ -1,6 +1,5 @@
 import Article from "../models/articleItem.js";
 import InternalServerError from "../middleware/errors/internalServerError.js";
-import NotFoundError from "../middleware/errors/notFoundError.js";
 import BadRequestError from "../middleware/errors/badRequestError.js";
 import statusCodes from "../utils/statusCodes.js";
 
@@ -70,5 +69,5 @@ export default {
   getArticle,
   saveArticle,
   deleteArticle,
- 
+
 };
