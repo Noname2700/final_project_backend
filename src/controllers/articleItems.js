@@ -1,12 +1,11 @@
 import Article from "../models/articleItem.js";
 import InternalServerError from "../middleware/errors/internalServerError.js";
 import BadRequestError from "../middleware/errors/badRequestError.js";
+import NotFoundError from "../middleware/errors/notFoundError.js";
+import ForbiddenError from "../middleware/errors/forbiddenError.js";
 import statusCodes from "../utils/statusCodes.js";
 
-
 const { OK_STATUS, NO_CONTENT_STATUS } = statusCodes;
-
-
 
 const getArticle = (req, res, next) => {
   const ownerId = req.user._id;
@@ -38,10 +37,14 @@ const saveArticle = (req, res, next) => {
     .then((article) => {
       res.status(OK_STATUS).send(article);
     })
-    .catch(() => {
-      next(
-        new InternalServerError("An error occurred while saving the article"),
-      );
+    .catch((err) => {
+      if (err.name === "ValidationError") {
+        return next(new BadRequestError("Invalid article data"));
+      } else {
+        next(
+          new InternalServerError("An error occurred while saving the article"),
+        );
+      }
     });
 };
 
@@ -49,14 +52,24 @@ const deleteArticle = (req, res, next) => {
   const articleId = req.params.articleId;
   const ownerId = req.user._id;
 
-  Article.findOneAndDelete({ _id: articleId, owner: ownerId })
-    .then((deletedArticle) => {
-      if (!deletedArticle) {
+  Article.findById(articleId)
+    .then((article) => {
+      if (!article) {
+        return next(new NotFoundError("Article not found"));
+      }
+      if (article.owner.toString() !== ownerId) {
         return next(
-          new BadRequestError("Article not found or not owned by user"),
+          new ForbiddenError(
+            "You do not have permission to delete this article",
+          ),
         );
       }
-      res.status(NO_CONTENT_STATUS).send();
+      return Article.findByIdAndDelete(articleId);
+    })
+    .then((deletedArticle) => {
+      if (deletedArticle) {
+        res.status(NO_CONTENT_STATUS).send();
+      }
     })
     .catch(() => {
       next(
@@ -69,5 +82,4 @@ export default {
   getArticle,
   saveArticle,
   deleteArticle,
-
 };
