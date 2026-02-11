@@ -38,8 +38,8 @@ const morganStream = {
 };
 const corsOptions = {
   origin: function (origin, callback) {
-    const allowedOrigins = process.env.CORS_ORIGIN
-      ? process.env.CORS_ORIGIN.split(",")
+    const allowedOrigins = process.env.CORS_ORIGINS
+      ? process.env.CORS_ORIGINS.split(",")
       : ["http://localhost:3000", "https://newsarticles.chickenkiller.com"];
 
     if (!origin || allowedOrigins.includes(origin)) {
