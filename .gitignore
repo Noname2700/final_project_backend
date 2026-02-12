@@ -1,0 +1,25 @@
+#logs
+logs/*
+!logs/.gitkeep
+*.log
+npm-debug.log*
+
+# Dependency directory
+node_modules
+
+# Optional npm cache directory
+.npm
+
+# System files and IDE settings folders
+.DS_Store
+.idea
+.vscode
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# cookie files
+*.cookie
+cookies.txt
