@@ -57,12 +57,13 @@ The frontend for the project can be found at:
 This frontend provides:
 
 - External API
-- Axios
+- fetch
 - UseState
 - Router
 - Navigate
 - Navlink
 - Media Queries
+- Switch  
 
 ## Project Domain Name
 
